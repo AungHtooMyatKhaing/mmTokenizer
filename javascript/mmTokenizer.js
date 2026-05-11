@@ -155,8 +155,9 @@ function syllableSegment(textInput) {
             // Myanmar run: apply segmentation
             processed.push(segment_myanmar(run));
         } else {
-            // Non-Myanmar run: keep as is (do not split further)
-            processed.push(run);
+            // Non-Myanmar run: split word by word
+            const words = run.split(/\s+/).filter(word => word.length > 0);
+            processed.push(words.join("|"));
         }
     }
     return processed.join("|");
@@ -374,10 +375,11 @@ function wordSegment(text, lexicon_path = null) {
             if (myanmar_re.test(run)) {
                 // Myanmar run: apply segmentation
                 processed.push(segment_myanmar(run));
-            } else {
-                // Non-Myanmar run: keep as is (do not split further)
-                processed.push(run);
-            }
+} else {
+            // Non-Myanmar run: split word by word
+            const words = run.split(/\s+/).filter(word => word.length > 0);
+            processed.push(words.join("|"));
+        }
         }
         return processed.join("|");
 

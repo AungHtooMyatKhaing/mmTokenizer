@@ -153,8 +153,9 @@ def syllableSegment(textInput: str) -> str:
             # Myanmar run: apply segmentation
             processed.append(segment_myanmar(run))
         else:
-            # Non-Myanmar run: keep as is (do not split further)
-            processed.append(run)
+            # Non-Myanmar run: split word by word
+            words = run.split()
+            processed.append("|".join(words))
     return "|".join(processed)
 
 #endregion
@@ -337,8 +338,9 @@ def wordSegment(text: str, lexicon_path=None) -> str:
                 # Myanmar run: apply segmentation
                 processed.append(segment_myanmar(run))
             else:
-                # Non-Myanmar run: keep as is (do not split further)
-                processed.append(run)
+                # Non-Myanmar run: split word by word
+                words = run.split()
+                processed.append("|".join(words))
         return "|".join(processed)
 
     except Exception as e:
