@@ -290,16 +290,42 @@ function wordSegment(text, lexicon_path = null) {
     const lexicon = new Set();
 
     try {
-        // Note: In a real Node.js environment, we would use fs module to read the file
-        // For this conversion, we'll assume the lexicon is provided or mocked in tests
-        // In a browser environment, we'd need to fetch the file
+        // Read the lexicon file using fs module (Node.js)
+        const fs = require('fs');
+        const lexiconData = fs.readFileSync(lexicon_path, 'utf8');
         
-        // Since we can't actually read files in this context without fs,
-        // we'll leave this as a placeholder that would need to be implemented
-        // based on the runtime environment (Node.js vs browser)
-        
-        // For demonstration purposes, we'll simulate loading an empty lexicon
-        // In practice, this would be replaced with actual file reading logic
+        // Parse the lexicon file (tab-separated values)
+        const lines = lexiconData.trim().split('\n');
+        for (const line of lines) {
+            const fields = line.split('\t').map(field => field.trim()).filter(field => field !== "");
+            if (fields.length === 0) continue;
+            
+            // Prefer the first field that contains Myanmar characters
+            let word = null;
+            for (const fld of fields) {
+                // remove zero-width spaces and BOMs
+                const fld_clean = fld.replace("\u200b", "").replace("\ufeff", "").trim();
+                if (myanmar_re.test(fld_clean)) {
+                    word = fld_clean;
+                    break;
+                }
+            }
+            
+            // Fallback heuristics if no Myanmar script was found:
+            if (word === null) {
+                // if fields look like [id, word, ...] and first is numeric, choose second
+                if (fields.length >= 2 && !isNaN(fields[0])) {
+                    word = fields[1].replace("\u200b", "").replace("\ufeff", "").trim();
+                } else {
+                    // fallback to second field if exists, else first
+                    word = (fields.length >= 2 ? fields[1] : fields[0]).replace("\u200b", "").replace("\ufeff", "").trim();
+                }
+            }
+            
+            if (word) {
+                lexicon.add(word);
+            }
+        }
         
         // build syllable trie (requires syllableSegment function)
         const trie_root = build_trie_syllables(lexicon, syllableSegment);
