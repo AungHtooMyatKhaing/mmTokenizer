@@ -1,0 +1,21 @@
+{
+  "name": "mmtokenizer",
+  "version": "0.1.0",
+  "description": "Myanmar (Burmese) text syllable and word tokenizer",
+  "main": "mmTokenizer.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "myanmar",
+    "burmese",
+    "tokenizer",
+    "syllable",
+    "word"
+  ],
+  "author": "Zar Zar Hlaing",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}

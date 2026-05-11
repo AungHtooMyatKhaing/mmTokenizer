@@ -1,0 +1,9 @@
+LICENSE
+LICENSE_README.md
+README.md
+setup.py
+mmTokenizer.egg-info/PKG-INFO
+mmTokenizer.egg-info/SOURCES.txt
+mmTokenizer.egg-info/dependency_links.txt
+mmTokenizer.egg-info/top_level.txt
+tests/test_mmtokenizer.py

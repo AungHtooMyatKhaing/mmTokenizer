@@ -253,7 +253,7 @@ def wordSegment(text: str, lexicon_path=None) -> str:
     # change this if you want an explicit path
     if lexicon_path is None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        base_dir = os.path.abspath(os.path.join(current_dir, "."))
+        base_dir = os.path.abspath(os.path.join(current_dir, ".."))
         lexicon_path = os.path.join(base_dir, "myanmar_text_data", "mmLexicon.tsv")
 
     # regex to detect Myanmar script characters
