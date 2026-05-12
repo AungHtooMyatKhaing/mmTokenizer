@@ -47,9 +47,10 @@ For detailed explanation, see [Syllable Segmentation Details](SYLLABLE_README.md
 ```python
 from python.mmTokenizer import syllableSegment
 
-input_text = "လူတိုင်းသည် တူညီလွတ်လပ်သော အခွင့်အရေးများဖြင့်လည်းကောင်း၊ မွေးဖွားလာသူများသည်။"
+input_text = "လူတိုင်းသည် တူညီလွတ်လပ်သော အခွင့်အရေးများဖြင့်လည်းကောင်း၊ မွေးဖွားလာသူများဖြစ်သည်။"
 syllable_seg_out = syllableSegment(input_text)
-print(syllable_seg_out)  # လူ|တိုင်း|သည်| |တူ|ညီ|လွတ်|လပ်|
+print(syllable_seg_out)  # လူ|တိုင်း|သည်| |တူ|ညီ|လွတ်|လပ်|သော| |ဂုဏ်|သိက္ခာ|ဖြင့်|လည်း|ကောင်း|၊ |တူ|ညီ|လွတ်|လပ်|သော| |အ|ခွင့်|အ|ရေး|များ|ဖြင့်|လည်း|ကောင်း|၊ |မွေး|ဖွား|လာ|သူ|များ|ဖြစ်|သည်|။ 
+
 ```
 
 #### Word Segmenter
@@ -58,7 +59,10 @@ For detailed explanation, see [Word Segmentation Details](WORD_README.md)
 ```python
 from python.mmTokenizer import wordSegment
 
-input_text = "လူတိုင်း�
+input_text = "လူတိုင်းသည် တူညီလွတ်လပ်သော အခွင့်အရေးများဖြင့်လည်းကောင်း၊ မွေးဖွားလာသူများဖြစ်သည်။"
+word_seg_out = wordSegment(input_text)
+print(word_seg_out) # လူ|တိုင်း|သည်| |တူညီ|လွတ်လပ်|သော| |ဂုဏ်သိက္ခာ|ဖြင့်|လည်းကောင်း|၊ |တူညီ|လွတ်လပ်|သော| |အခွင့်အရေး|များ|ဖြင့်|လည်းကောင်း|၊ |မွေးဖွားလာသူ|များ|ဖြစ်|သည်|။
+
 ```
 
 ### JavaScript Usage
@@ -67,17 +71,19 @@ input_text = "လူတိုင်း�
 ```javascript
 const { syllableSegment } = require('./javascript/mmTokenizer');
 
-const inputText = "လူတိုင်းသည် တူညီလွတ်လပ်သော အခွင့်အရေးများဖြင့်လည်းကောင်း၊ မွေးဖွားလာသူ�يدات";
+const inputText = "လူတိုင်းသည် တူညီလွတ်လပ်သော အခွင့်အရေးများဖြင့်လည်းကောင်း၊ မွေးဖွားလာသူများဖြစ်သည်။";
 const syllableSegOut = syllableSegment(inputText);
-console.log(syllableSegOut);  // လူ|တိုင်း|သည်| |တူ|ညီ|လွတ်|လပ်|
+console.log(syllableSegOut);  // လူ|တိုင်း|သည်| |တူ|ညီ|လွတ်|လပ်|သော| |ဂုဏ်|သိက္ခာ|ဖြင့်|လည်း|ကောင်း|၊ |တူ|ညီ|လွတ်|လပ်|သော| |အ|ခွင့်|အ|ရေး|များ|ဖြင့်|လည်း|ကောင်း|၊ |မွေး|ဖွား|လာ|သူ|များ|ဖြစ်|သည်|။ 
+
 ```
 
 #### Word Segmenter
 ```javascript
 const { wordSegment } = require('./javascript/mmTokenizer');
 
-const inputText = "လူတိုင်း�
-```
+const inputText = "လူတိုင်းသည် တူညီလွတ်လပ်သော အခွင့်အရေးများဖြင့်လည်းကောင်း၊ မွေးဖွားလာသူများဖြစ်သည်။";
+const wordSegOut = wordSegment(inputText);
+console.log(wordSegOut); // လူ|တိုင်း|သည်| |တူညီ|လွတ်လပ်|သော| |ဂုဏ်သိက္ခာ|ဖြင့်|လည်းကောင်း|၊ |တူညီ|လွတ်လပ်|သော| |အခွင့်အရေး|များ|ဖြင့်|လည်းကောင်း|၊ |မွေးဖွားလာသူ|များ|ဖြစ်|သည်|။
 
 ---
 
