@@ -84,10 +84,12 @@ const { wordSegment } = require('./javascript/mmTokenizer');
 const inputText = "လူတိုင်းသည် တူညီလွတ်လပ်သော အခွင့်အရေးများဖြင့်လည်းကောင်း၊ မွေးဖွားလာသူများဖြစ်သည်။";
 const wordSegOut = wordSegment(inputText);
 console.log(wordSegOut); // လူ|တိုင်း|သည်| |တူညီ|လွတ်လပ်|သော| |ဂုဏ်သိက္ခာ|ဖြင့်|လည်းကောင်း|၊ |တူညီ|လွတ်လပ်|သော| |အခွင့်အရေး|များ|ဖြင့်|လည်းကောင်း|၊ |မွေးဖွားလာသူ|များ|ဖြစ်|သည်|။
+```
 
 ---
 
 ## Folder Structure
+
 ```
 mmTokenizer/
 ├── __init__.py
@@ -119,7 +121,6 @@ mmTokenizer/
 ├── WORD_README.md              # Detailed explanation of word segmentation
 └── requirements.txt            # Python dependencies
 ```
-
 ---
 
 ## Testing
