@@ -20,7 +20,7 @@
 Clone the repository:
 
 ```bash
-git clone https://github.com/zar-zar-hlaing/mmTokenizer.git
+git clone https://github.com/AungHtooMyatKhaing/mmTokenizer.git
 cd mmTokenizer
 ```
 
@@ -140,8 +140,8 @@ Test runner: Custom Node.js script. Test file: `javascript/tests/test_mmtokenize
 
 ---
 
-## Author
-- Zar Zar Hlaing
+## Original Author
+- Zar Zar Hlaing (https://github.com/zar-zar-hlaing/mmTokenizer)
 
 ---
 
