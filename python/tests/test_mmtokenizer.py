@@ -93,3 +93,46 @@ def test_word_segmentation_with_timestamps():
     # English words preserved, Myanmar segmented
     assert "Hello" in output
     assert "[01:23.45]" not in output
+
+def test_line_by_line_format_preservation():
+    # Test that syllableSegment and wordSegment preserve line-by-line format
+    # If original input has N lines, final result should have N lines
+    input_text = """Line 1
+လူတိုင်း
+[00:08.11] အတွေးများ
+Line 4
+Another line with Myanmar: အနုပညာ"""
+    
+    # Test syllableSegment preserves line count
+    syll_output = syllableSegment(input_text)
+    input_lines = input_text.splitlines()
+    syll_lines = syll_output.splitlines()
+    assert len(input_lines) == len(syll_lines), \
+        f"syllableSegment failed to preserve line count: expected {len(input_lines)}, got {len(syll_lines)}"
+    
+    # Test wordSegment preserves line count
+    word_output = wordSegment(input_text)
+    word_lines = word_output.splitlines()
+    assert len(input_lines) == len(word_lines), \
+        f"wordSegment failed to preserve line count: expected {len(input_lines)}, got {len(word_lines)}"
+    
+    # Test that timestamps are removed from each line
+    for line in syll_lines:
+        assert "[00:08.11]" not in line, f"Timestamp not removed from syllable line: {line}"
+        
+    for line in word_lines:
+        assert "[00:08.11]" not in line, f"Timestamp not removed from word line: {line}"
+    
+    # Test with different line endings
+    input_text_crlf = "Line 1\r\nလူတိုင်း\r\n[00:08.11] အတွေးများ\r\nLine 4"
+    syll_output_crlf = syllableSegment(input_text_crlf)
+    word_output_crlf = wordSegment(input_text_crlf)
+    
+    input_lines_crlf = input_text_crlf.splitlines()
+    syll_lines_crlf = syll_output_crlf.splitlines()
+    word_lines_crlf = word_output_crlf.splitlines()
+    
+    assert len(input_lines_crlf) == len(syll_lines_crlf), \
+        f"syllableSegment failed to preserve line count with CRLF: expected {len(input_lines_crlf)}, got {len(syll_lines_crlf)}"
+    assert len(input_lines_crlf) == len(word_lines_crlf), \
+        f"wordSegment failed to preserve line count with CRLF: expected {len(input_lines_crlf)}, got {len(word_lines_crlf)}"

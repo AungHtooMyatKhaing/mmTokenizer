@@ -50,14 +50,14 @@ try {
   // Test syllableSegment
   console.log('\n--- Testing syllableSegment ---');
   
-  output = syllableSegment("လူတိုင်း");
+  output = syllableSegment("လူတ_align");
   assertTrue(output.includes("|"), "Basic segmentation contains |");
   
   // Mixed text test
-  output = syllableSegment("Hello လူတိုင်း világ"); // Using Latin chars for world
+  output = syllableSegment("Hello လူတ_align� world"); // Using Latin chars for world
   const cleanOutput = output.replace(/\|/g, "");
   assertTrue(cleanOutput.includes("Hello"), "Mixed text - Hello preserved");
-  assertTrue(cleanOutput.includes("világ"), "Mixed text - world preserved");
+  assertTrue(cleanOutput.includes("world"), "Mixed text - world preserved");
   assertTrue(output.includes("|"), "Mixed text - contains separator");
   
   // With timestamps
@@ -73,7 +73,7 @@ try {
   console.log('\n--- Testing wordSegment ---');
   
   // Basic test
-  output = wordSegment("လူတိုင်း");
+  output = wordSegment("လူတ_align");
   assertTrue(typeof output === 'string', "Word segmentation returns string");
   assertTrue(output.length > 0, "Word segmentation output not empty");
   
@@ -87,7 +87,50 @@ try {
   output = wordSegment("Hello [01:23.45] Myanmar word");
   assertTrue(output.includes("Hello"), "With timestamp - Hello preserved");
   assertFalse(output.includes("[01:23.45]"), "With timestamp - no timestamp in output");
+
+  // Test line-by-line format preservation
+  console.log('\n--- Testing line-by-line format preservation ---');
   
+  // Test that syllableSegment and wordSegment preserve line-by-line format
+  // If original input has N lines, final result should have N lines
+  let inputText = `Line 1
+လူတ_align
+[00:08.11] အတွေးများ
+Line 4
+Another line with Myanmar: အနုပညာ`;
+  
+  // Test syllableSegment preserves line count
+  let syllOutput = syllableSegment(inputText);
+  let inputLines = inputText.split(/\r\n|\r|\n/);
+  let syllLines = syllOutput.split(/\r\n|\r|\n/);
+  assertEquals(inputLines.length, syllLines.length, "syllableSegment preserves line count");
+  
+  // Test wordSegment preserves line count
+  let wordOutput = wordSegment(inputText);
+  let wordLines = wordOutput.split(/\r\n|\r|\n/);
+  assertEquals(inputLines.length, wordLines.length, "wordSegment preserves line count");
+  
+  // Test that timestamps are removed from each line
+  for (let i = 0; i < syllLines.length; i++) {
+    assertFalse(syllLines[i].includes("[00:08.11]"), `Timestamp not removed from syllable line ${i}`);
+  }
+  
+  for (let i = 0; i < wordLines.length; i++) {
+    assertFalse(wordLines[i].includes("[00:08.11]"), `Timestamp not removed from word line ${i}`);
+  }
+  
+  // Test with different line endings
+  let inputTextCrlf = "Line 1\r\nလူတ_align\r\n[00:08.11] အတွေးများ\r\nLine 4";
+  let syllOutputCrlf = syllableSegment(inputTextCrlf);
+  let wordOutputCrlf = wordSegment(inputTextCrlf);
+  
+  let inputLinesCrlf = inputTextCrlf.split(/\r\n|\r|\n/);
+  let syllLinesCrlf = syllOutputCrlf.split(/\r\n|\r|\n/);
+  let wordLinesCrlf = wordOutputCrlf.split(/\r\n|\r|\n/);
+  
+  assertEquals(inputLinesCrlf.length, syllLinesCrlf.length, "syllableSegment preserves line count with CRLF");
+  assertEquals(inputLinesCrlf.length, wordLinesCrlf.length, "wordSegment preserves line count with CRLF");
+
   console.log('\n=== All Tests Passed! ===');
 } catch (error) {
   console.error(`Test failed: ${error.message}`);

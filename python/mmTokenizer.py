@@ -64,99 +64,114 @@ def syllableSegment(textInput: str) -> str:
     Processes only Myanmar text runs; leaves other scripts (e.g., Latin) unchanged.
     Removes timestamp patterns like [00:08.11].
     Returns a string with tokens separated by "|".
+    Preserves original line-by-line format.
     """
-    # Remove timestamp patterns first
-    textInput = remove_timestamps(textInput)
+    # Split input into lines to preserve line-by-line format
+    lines = textInput.splitlines(keepends=True)
+    processed_lines = []
     
-    # Helper function to segment a Myanmar-only string
-    def segment_myanmar(text: str) -> str:
-        global segSeq, resultText, letterSeq, letterSeq1, letterSeq2, letterSeq3, input1, input2, input3
+    for line in lines:
+        # Remove timestamp patterns first (but keep line ending)
+        line_content = line.rstrip('\n\r')
+        line_ending = line[len(line_content):]  # Preserve original line ending
+        
+        # Process the line content
+        line_content = remove_timestamps(line_content)
+        
+        # Helper function to segment a Myanmar-only string
+        def segment_myanmar(text: str) -> str:
+            global segSeq, resultText, letterSeq, letterSeq1, letterSeq2, letterSeq3, input1, input2, input3
 
-        # Reset globals before each call
-        segSeq = resultText = letterSeq = letterSeq1 = letterSeq2 = letterSeq3 = ""
-        input1 = input2 = input3 = ""
+            # Reset globals before each call
+            segSeq = resultText = letterSeq = letterSeq1 = letterSeq2 = letterSeq3 = ""
+            input1 = input2 = input3 = ""
 
-        # Transition rules: [current type][next type] → action
-        # Values: 0=end token, 1=continue with '|', 2=keep, 9=check deeper, -1=invalid
-        twoConsecutive = [
-            [-1, 9, 1, 1, 0, -1, 1, 0, 1, 0, 0, 1, 1],
-            [0, 9, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],
-            [-1, 1, 0, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
-            [-1, 9, 1, 1, 2, 0, 1, -1, 1, -1, 0, 1, 1],
-            [-1, 9, 1, 1, 0, -1, 1, -1, 1, -1, -1, 1, 1],
-            [-1, 1, 1, 1, 0, -1, 1, -1, 1, -1, 0, 1, 1],
-            [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
-            [2, 9, 1, 1, 0, 0, 1, 0, 1, -1, 0, 1, 1],
-            [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
-            [-1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1],
-            [2, 9, 1, 1, 0, 0, 1, -1, 1, -1, 0, 1, 1],
-            [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 0, 1],
-        ]
+            # Transition rules: [current type][next type] → action
+            # Values: 0=end token, 1=continue with '|', 2=keep, 9=check deeper, -1=invalid
+            twoConsecutive = [
+                [-1, 9, 1, 1, 0, -1, 1, 0, 1, 0, 0, 1, 1],
+                [0, 9, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],
+                [-1, 1, 0, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
+                [-1, 9, 1, 1, 2, 0, 1, -1, 1, -1, 0, 1, 1],
+                [-1, 9, 1, 1, 0, -1, 1, -1, 1, -1, -1, 1, 1],
+                [-1, 1, 1, 1, 0, -1, 1, -1, 1, -1, 0, 1, 1],
+                [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
+                [2, 9, 1, 1, 0, 0, 1, 0, 1, -1, 0, 1, 1],
+                [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
+                [-1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1],
+                [2, 9, 1, 1, 0, 0, 1, -1, 1, -1, 0, 1, 1],
+                [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 0, 1],
+            ]
 
-        # Map characters → categories
-        for ch in text:
-            if ch in C: letterSeq += "C"
-            elif ch in M: letterSeq += "M"
-            elif ch in V: letterSeq += "V"
-            elif ch in S: letterSeq += "S"
-            elif ch in A: letterSeq += "A"
-            elif ch in I: letterSeq += "I"
-            elif ch in F: letterSeq += "F"
-            elif ch in E: letterSeq += "E"
-            elif ch in G: letterSeq += "G"
-            elif ch in D: letterSeq += "D"
-            elif ch in P: letterSeq += "P"
-            elif ch in W: letterSeq += "W"
-        letterSeq += "#"  # End marker
+            # Map characters → categories
+            for ch in text:
+                if ch in C: letterSeq += "C"
+                elif ch in M: letterSeq += "M"
+                elif ch in V: letterSeq += "V"
+                elif ch in S: letterSeq += "S"
+                elif ch in A: letterSeq += "A"
+                elif ch in I: letterSeq += "I"
+                elif ch in F: letterSeq += "F"
+                elif ch in E: letterSeq += "E"
+                elif ch in G: letterSeq += "G"
+                elif ch in D: letterSeq += "D"
+                elif ch in P: letterSeq += "P"
+                elif ch in W: letterSeq += "W"
+            letterSeq += "#"  # End marker
 
-        # Map symbol → lookup index
-        mapping = {"A": 0, "C": 1, "D": 2, "E": 3, "F": 4,
-                   "G": 5, "I": 6, "M": 7, "P": 8, "S": 9,
-                   "V": 10, "W": 11, "#": 12}
-        convert = [mapping[c] for c in letterSeq]
+            # Map symbol → lookup index
+            mapping = {"A": 0, "C": 1, "D": 2, "E": 3, "F": 4,
+                       "G": 5, "I": 6, "M": 7, "P": 8, "S": 9,
+                       "V": 10, "W": 11, "#": 12}
+            convert = [mapping[c] for c in letterSeq]
 
-        # Apply rules
-        for i in range(len(convert) - 1):
-            row, col = convert[i], convert[i + 1]
-            case = twoConsecutive[row][col]
+            # Apply rules
+            for i in range(len(convert) - 1):
+                row, col = convert[i], convert[i + 1]
+                case = twoConsecutive[row][col]
 
-            if case == 0:  # End of token
-                segSeq += letterSeq[i]
-                resultText += text[i]
-                letterSeq1 = letterSeq[i + 1:]
-                input1 = text[i + 1:]
+                if case == 0:  # End of token
+                    segSeq += letterSeq[i]
+                    resultText += text[i]
+                    letterSeq1 = letterSeq[i + 1:]
+                    input1 = text[i + 1:]
 
-            elif case == 1:  # Continue with separation
-                segSeq += letterSeq[i] + "|"
-                resultText += text[i] if text[i] in P else text[i] + "|"
+                elif case == 1:  # Continue with separation
+                    segSeq += letterSeq[i] + "|"
+                    resultText += text[i] if text[i] in P else text[i] + "|"
 
-            elif case == 2:  # Keep without separation
-                segSeq += letterSeq[i]
-                resultText += text[i]
+                elif case == 2:  # Keep without separation
+                    segSeq += letterSeq[i]
+                    resultText += text[i]
 
-            elif case == 9:  # Escalate to deeper lookup
-                letterSeq1 = letterSeq[i:]
-                input1 = text[i:]
-                twoChar = letterSeq[i] + letterSeq[i + 1]
-                secondTable(convert[i + 2], twoChar, i, convert)
+                elif case == 9:  # Escalate to deeper lookup
+                    letterSeq1 = letterSeq[i:]
+                    input1 = text[i:]
+                    twoChar = letterSeq[i] + letterSeq[i + 1]
+                    secondTable(convert[i + 2], twoChar, i, convert)
 
-        return resultText.rstrip("|")
+            return resultText.rstrip("|")
 
-    # Split text into runs of Myanmar and non-Myanmar characters
-    # Pattern captures either Myanmar chars or non-Myanmar chars
-    myanmar_re = re.compile(r"[\u1000-\u109F\uAA60-\uAA7F]")
-    runs = re.findall(r'([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)', textInput)
-    # Process each run
-    processed = []
-    for run in runs:
-        if myanmar_re.search(run):
-            # Myanmar run: apply segmentation
-            processed.append(segment_myanmar(run))
-        else:
-            # Non-Myanmar run: split word by word
-            words = run.split()
-            processed.append("|".join(words))
-    return "|".join(processed)
+        # Split text into runs of Myanmar and non-Myanmar characters
+        # Pattern captures either Myanmar chars or non-Myanmar chars
+        myanmar_re = re.compile(r"[\u1000-\u109F\uAA60-\uAA7F]")
+        runs = re.findall(r'([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)', line_content)
+        # Process each run
+        processed = []
+        for run in runs:
+            if myanmar_re.search(run):
+                # Myanmar run: apply segmentation
+                processed.append(segment_myanmar(run))
+            else:
+                # Non-Myanmar run: split word by word
+                words = run.split()
+                processed.append("|".join(words))
+        processed_line = "|".join(processed)
+        
+        # Add back the line ending
+        processed_lines.append(processed_line + line_ending)
+    
+    return "".join(processed_lines)
 
 #endregion
 
@@ -247,10 +262,8 @@ def wordSegment(text: str, lexicon_path=None) -> str:
     - Builds trie keyed by syllables (so tokens are combined by syllable).
     - Requires `syllableSegment(text)` to segment the syllable of the input text.
     - Removes timestamp patterns like [00:08.11].
+    Preserves original line-by-line format.
     """
-    # Remove timestamp patterns first
-    text = remove_timestamps(text)
-    
     # change this if you want an explicit path
     if lexicon_path is None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -299,38 +312,54 @@ def wordSegment(text: str, lexicon_path=None) -> str:
         # build syllable trie (requires syllableSegment function)
         trie_root = build_trie_syllables(lexicon, syllableSegment)
 
-        # Helper to segment a Myanmar-only string using the trie
-        def segment_myanmar(myanmar_text: str) -> str:
-            # segment into syllables
-            tokens = syllableSegment(myanmar_text).split("|")
-            out = []
-            i = 0
-            while i < len(tokens):
-                node = trie_root
-                longest_match = None
-                longest_k = 0
+    except Exception as e:
+        print("Error loading lexicon or during segmentation:", e)
+        return None
 
-                # walk syllable by syllable
-                for k in range(len(tokens) - i):
-                    syll = tokens[i + k]
-                    if syll not in node.children:
-                        break
-                    node = node.children[syll]
-                    if node.is_word:
-                        longest_match = "".join(tokens[i:i + k + 1])
-                        longest_k = k + 1
+    # Helper to segment a Myanmar-only string using the trie
+    def segment_myanmar(myanmar_text: str) -> str:
+        # segment into syllables
+        tokens = syllableSegment(myanmar_text).split("|")
+        out = []
+        i = 0
+        while i < len(tokens):
+            node = trie_root
+            longest_match = None
+            longest_k = 0
 
-                if longest_match:
-                    out.append(longest_match)
-                    i += longest_k
-                else:
-                    out.append(tokens[i])
-                    i += 1
-            return "|".join(out)
+            # walk syllable by syllable
+            for k in range(len(tokens) - i):
+                syll = tokens[i + k]
+                if syll not in node.children:
+                    break
+                node = node.children[syll]
+                if node.is_word:
+                    longest_match = "".join(tokens[i:i + k + 1])
+                    longest_k = k + 1
 
+            if longest_match:
+                out.append(longest_match)
+                i += longest_k
+            else:
+                out.append(tokens[i])
+                i += 1
+        return "|".join(out)
+
+    # Split input into lines to preserve line-by-line format
+    lines = text.splitlines(keepends=True)
+    processed_lines = []
+    
+    for line in lines:
+        # Remove timestamp patterns first (but keep line ending)
+        line_content = line.rstrip('\n\r')
+        line_ending = line[len(line_content):]  # Preserve original line ending
+        
+        # Process the line content
+        line_content = remove_timestamps(line_content)
+        
         # Split text into runs of Myanmar and non-Myanmar characters
         # Pattern captures either Myanmar chars or non-Myanmar chars
-        runs = re.findall(r'([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)', text)
+        runs = re.findall(r'([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)', line_content)
         # Process each run
         processed = []
         for run in runs:
@@ -341,11 +370,12 @@ def wordSegment(text: str, lexicon_path=None) -> str:
                 # Non-Myanmar run: split word by word
                 words = run.split()
                 processed.append("|".join(words))
-        return "|".join(processed)
-
-    except Exception as e:
-        print("Error loading lexicon or during segmentation:", e)
-        return None
+        processed_line = "|".join(processed)
+        
+        # Add back the line ending
+        processed_lines.append(processed_line + line_ending)
+    
+    return "".join(processed_lines)
 
 #endregion
 

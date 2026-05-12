@@ -60,107 +60,120 @@ function remove_timestamps(text) {
  * @returns {string} Syllable-segmented text
  */
 function syllableSegment(textInput) {
-    // Remove timestamp patterns first
-    textInput = remove_timestamps(textInput);
+    // Split input into lines to preserve line-by-line format
+    const lines = textInput.split(/\r\n|\r|\n/);
+    const lineEndings = textInput.match(/\r\n|\r|\n/g) || [];
+    // If the text ends without a newline, we need to handle that case
+    const processedLines = [];
     
-    // Helper function to segment a Myanmar-only string
-    function segment_myanmar(text) {
-        // Reset globals before each call
-        segSeq = "";
-        resultText = "";
-        letterSeq = "";
-        letterSeq1 = "";
-        letterSeq2 = "";
-        letterSeq3 = "";
-        input1 = "";
-        input2 = "";
-        input3 = "";
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        let lineEnding = (i < lineEndings.length) ? lineEndings[i] : '';
+        
+        // Remove timestamp patterns first (but keep line ending)
+        line = remove_timestamps(line);
+        
+        // Helper function to segment a Myanmar-only string
+        function segment_myanmar(text) {
+            // Reset globals before each call
+            segSeq = "";
+            resultText = "";
+            letterSeq = "";
+            letterSeq1 = "";
+            letterSeq2 = "";
+            letterSeq3 = "";
+            input1 = "";
+            input2 = "";
+            input3 = "";
 
-        // Transition rules: [current type][next type] → action
-        // Values: 0=end token, 1=continue with '|', 2=keep, 9=check deeper, -1=invalid
-        const twoConsecutive = [
-            [-1, 9, 1, 1, 0, -1, 1, 0, 1, 0, 0, 1, 1],
-            [0, 9, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],
-            [-1, 1, 0, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
-            [-1, 9, 1, 1, 2, 0, 1, -1, 1, -1, 0, 1, 1],
-            [-1, 9, 1, 1, 0, -1, 1, -1, 1, -1, -1, 1, 1],
-            [-1, 1, 1, 1, 0, -1, 1, -1, 1, -1, 0, 1, 1],
-            [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
-            [2, 9, 1, 1, 0, 0, 1, 0, 1, -1, 0, 1, 1],
-            [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
-            [-1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1],
-            [2, 9, 1, 1, 0, 0, 1, -1, 1, -1, 0, 1, 1],
-            [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 0, 1],
-        ];
+            // Transition rules: [current type][next type] → action
+            // Values: 0=end token, 1=continue with '|', 2=keep, 9=check deeper, -1=invalid
+            const twoConsecutive = [
+                [-1, 9, 1, 1, 0, -1, 1, 0, 1, 0, 0, 1, 1],
+                [0, 9, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],
+                [-1, 1, 0, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
+                [-1, 9, 1, 1, 2, 0, 1, -1, 1, -1, 0, 1, 1],
+                [-1, 9, 1, 1, 0, -1, 1, -1, 1, -1, -1, 1, 1],
+                [-1, 1, 1, 1, 0, -1, 1, -1, 1, -1, 0, 1, 1],
+                [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
+                [2, 9, 1, 1, 0, 0, 1, 0, 1, -1, 0, 1, 1],
+                [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1],
+                [-1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1],
+                [2, 9, 1, 1, 0, 0, 1, -1, 1, -1, 0, 1, 1],
+                [-1, 1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 0, 1],
+            ];
 
-        // Map characters → categories
-        for (const ch of text) {
-            if (C.includes(ch)) letterSeq += "C";
-            else if (M.includes(ch)) letterSeq += "M";
-            else if (V.includes(ch)) letterSeq += "V";
-            else if (S.includes(ch)) letterSeq += "S";
-            else if (A.includes(ch)) letterSeq += "A";
-            else if (I.includes(ch)) letterSeq += "I";
-            else if (F.includes(ch)) letterSeq += "F";
-            else if (E.includes(ch)) letterSeq += "E";
-            else if (G.includes(ch)) letterSeq += "G";
-            else if (D.includes(ch)) letterSeq += "D";
-            else if (P.includes(ch)) letterSeq += "P";
-            else if (W.includes(ch)) letterSeq += "W";
+            // Map characters → categories
+            for (const ch of text) {
+                if (C.includes(ch)) letterSeq += "C";
+                else if (M.includes(ch)) letterSeq += "M";
+                else if (V.includes(ch)) letterSeq += "V";
+                else if (S.includes(ch)) letterSeq += "S";
+                else if (A.includes(ch)) letterSeq += "A";
+                else if (I.includes(ch)) letterSeq += "I";
+                else if (F.includes(ch)) letterSeq += "F";
+                else if (E.includes(ch)) letterSeq += "E";
+                else if (G.includes(ch)) letterSeq += "G";
+                else if (D.includes(ch)) letterSeq += "D";
+                else if (P.includes(ch)) letterSeq += "P";
+                else if (W.includes(ch)) letterSeq += "W";
+            }
+            letterSeq += "#";  // End marker
+
+            // Map symbol → lookup index
+            const mapping = {"A": 0, "C": 1, "D": 2, "E": 3, "F": 4,
+                            "G": 5, "I": 6, "M": 7, "P": 8, "S": 9,
+                            "V": 10, "W": 11, "#": 12};
+            const convert = letterSeq.split('').map(c => mapping[c]);
+
+            // Apply rules
+            for (let i = 0; i < convert.length - 1; i++) {
+                const row = convert[i];
+                const col = convert[i + 1];
+                const caseVal = twoConsecutive[row][col];
+
+                if (caseVal === 0) {  // End of token
+                    segSeq += letterSeq[i];
+                    resultText += text[i];
+                    letterSeq1 = letterSeq.substring(i + 1);
+                    input1 = text.substring(i + 1);
+                } else if (caseVal === 1) {  // Continue with separation
+                    segSeq += letterSeq[i] + "|";
+                    resultText += (P.includes(text[i]) ? text[i] : text[i] + "|");
+                } else if (caseVal === 2) {  // Keep without separation
+                    segSeq += letterSeq[i];
+                    resultText += text[i];
+                } else if (caseVal === 9) {  // Escalate to deeper lookup
+                    letterSeq1 = letterSeq.substring(i);
+                    input1 = text.substring(i);
+                    const twoChar = letterSeq[i] + letterSeq[i + 1];
+                    secondTable(convert[i + 2], twoChar, i, convert);
+                }
+            }
+
+            return resultText.replace(/\|$/g, '');  // rstrip equivalent
         }
-        letterSeq += "#";  // End marker
 
-        // Map symbol → lookup index
-        const mapping = {"A": 0, "C": 1, "D": 2, "E": 3, "F": 4,
-                        "G": 5, "I": 6, "M": 7, "P": 8, "S": 9,
-                        "V": 10, "W": 11, "#": 12};
-        const convert = letterSeq.split('').map(c => mapping[c]);
-
-        // Apply rules
-        for (let i = 0; i < convert.length - 1; i++) {
-            const row = convert[i];
-            const col = convert[i + 1];
-            const caseVal = twoConsecutive[row][col];
-
-            if (caseVal === 0) {  // End of token
-                segSeq += letterSeq[i];
-                resultText += text[i];
-                letterSeq1 = letterSeq.substring(i + 1);
-                input1 = text.substring(i + 1);
-            } else if (caseVal === 1) {  // Continue with separation
-                segSeq += letterSeq[i] + "|";
-                resultText += (P.includes(text[i]) ? text[i] : text[i] + "|");
-            } else if (caseVal === 2) {  // Keep without separation
-                segSeq += letterSeq[i];
-                resultText += text[i];
-            } else if (caseVal === 9) {  // Escalate to deeper lookup
-                letterSeq1 = letterSeq.substring(i);
-                input1 = text.substring(i);
-                const twoChar = letterSeq[i] + letterSeq[i + 1];
-                secondTable(convert[i + 2], twoChar, i, convert);
+        // Split text into runs of Myanmar and non-Myanmar characters
+        // Pattern captures either Myanmar chars or non-Myanmar chars
+        const myanmar_re = /[\u1000-\u109F\uAA60-\uAA7F]/;
+        const runs = line.match(/([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)/g) || [];
+        // Process each run
+        const processed = [];
+        for (const run of runs) {
+            if (myanmar_re.test(run)) {
+                // Myanmar run: apply segmentation
+                processed.push(segment_myanmar(run));
+            } else {
+                // Non-Myanmar run: split word by word
+                const words = run.split(/\s+/).filter(word => word.length > 0);
+                processed.push(words.join("|"));
             }
         }
-
-        return resultText.replace(/\|$/g, '');  // rstrip equivalent
+        processedLines.push(processed.join("|") + lineEnding);
     }
-
-    // Split text into runs of Myanmar and non-Myanmar characters
-    // Pattern captures either Myanmar chars or non-Myanmar chars
-    const myanmar_re = /[\u1000-\u109F\uAA60-\uAA7F]/;
-    const runs = textInput.match(/([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)/g) || [];
-    // Process each run
-    const processed = [];
-    for (const run of runs) {
-        if (myanmar_re.test(run)) {
-            // Myanmar run: apply segmentation
-            processed.push(segment_myanmar(run));
-        } else {
-            // Non-Myanmar run: split word by word
-            const words = run.split(/\s+/).filter(word => word.length > 0);
-            processed.push(words.join("|"));
-        }
-    }
-    return processed.join("|");
+    
+    return processedLines.join("");
 }
 
 /**
@@ -275,9 +288,6 @@ function build_trie_syllables(lexicon, syllableSegmentFn) {
  * @returns {string|null} Word-segmented text or null if error
  */
 function wordSegment(text, lexicon_path = null) {
-    // Remove timestamp patterns first
-    text = remove_timestamps(text);
-    
     // change this if you want an explicit path
     if (lexicon_path === null) {
         const current_dir = __dirname; // In Node.js, __dirname is the directory of the current module
@@ -289,6 +299,7 @@ function wordSegment(text, lexicon_path = null) {
     const myanmar_re = /[\u1000-\u109F\uAA60-\uAA7F]/;
 
     const lexicon = new Set();
+    let trie_root = null;
 
     try {
         // Read the lexicon file using fs module (Node.js)
@@ -296,9 +307,9 @@ function wordSegment(text, lexicon_path = null) {
         const lexiconData = fs.readFileSync(lexicon_path, 'utf8');
         
         // Parse the lexicon file (tab-separated values)
-        const lines = lexiconData.trim().split('\n');
-        for (const line of lines) {
-            const fields = line.split('\t').map(field => field.trim()).filter(field => field !== "");
+        const lexiconLines = lexiconData.trim().split('\n');
+        for (const lexiconLine of lexiconLines) {
+            const fields = lexiconLine.split('\t').map(field => field.trim()).filter(field => field !== "");
             if (fields.length === 0) continue;
             
             // Prefer the first field that contains Myanmar characters
@@ -329,64 +340,80 @@ function wordSegment(text, lexicon_path = null) {
         }
         
         // build syllable trie (requires syllableSegment function)
-        const trie_root = build_trie_syllables(lexicon, syllableSegment);
+        trie_root = build_trie_syllables(lexicon, syllableSegment);
 
-        // Helper to segment a Myanmar-only string using the trie
-        function segment_myanmar(myanmar_text) {
-            // segment into syllables
-            const tokens = syllableSegment(myanmar_text).split("|");
-            const out = [];
-            let i = 0;
-            while (i < tokens.length) {
-                let node = trie_root;
-                let longest_match = null;
-                let longest_k = 0;
+    } catch (e) {
+        console.error("Error loading lexicon or during segmentation:", e);
+        return null;
+    }
 
-                // walk syllable by syllable
-                for (let k = 0; k < tokens.length - i; k++) {
-                    const syll = tokens[i + k];
-                    if (!node.children[syll]) {
-                        break;
-                    }
-                    node = node.children[syll];
-                    if (node.is_word) {
-                        longest_match = tokens.slice(i, i + k + 1).join("");
-                        longest_k = k + 1;
-                    }
+    // Helper to segment a Myanmar-only string using the trie
+    function segment_myanmar(myanmar_text) {
+        // segment into syllables
+        const tokens = syllableSegment(myanmar_text).split("|");
+        const out = [];
+        let i = 0;
+        while (i < tokens.length) {
+            let node = trie_root;
+            let longest_match = null;
+            let longest_k = 0;
+
+            // walk syllable by syllable
+            for (let k = 0; k < tokens.length - i; k++) {
+                const syll = tokens[i + k];
+                if (!node.children[syll]) {
+                    break;
                 }
-
-                if (longest_match) {
-                    out.push(longest_match);
-                    i += longest_k;
-                } else {
-                    out.push(tokens[i]);
-                    i += 1;
+                node = node.children[syll];
+                if (node.is_word) {
+                    longest_match = tokens.slice(i, i + k + 1).join("");
+                    longest_k = k + 1;
                 }
             }
-            return out.join("|");
-        }
 
+            if (longest_match) {
+                out.push(longest_match);
+                i += longest_k;
+            } else {
+                out.push(tokens[i]);
+                i += 1;
+            }
+        }
+        return out.join("|");
+    }
+
+    // Split input into lines to preserve line-by-line format
+    const lines = text.split(/\r\n|\r|\n/);
+    const lineEndings = text.match(/\r\n|\r|\n/g) || [];
+    // If the text ends without a newline, we need to handle that case
+    const processedLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        let lineEnding = (i < lineEndings.length) ? lineEndings[i] : '';
+        
+        // Remove timestamp patterns first (but keep line ending)
+        line = remove_timestamps(line);
+        
         // Split text into runs of Myanmar and non-Myanmar characters
         // Pattern captures either Myanmar chars or non-Myanmar chars
-        const runs = text.match(/([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)/g) || [];
+        const runs = line.match(/([\u1000-\u109F\uAA60-\uAA7F]+|[^\u1000-\u109F\uAA60-\uAA7F]+)/g) || [];
         // Process each run
         const processed = [];
         for (const run of runs) {
             if (myanmar_re.test(run)) {
                 // Myanmar run: apply segmentation
                 processed.push(segment_myanmar(run));
-} else {
-            // Non-Myanmar run: split word by word
-            const words = run.split(/\s+/).filter(word => word.length > 0);
-            processed.push(words.join("|"));
+            } else {
+                // Non-Myanmar run: split word by word
+                const words = run.split(/\s+/).filter(word => word.length > 0);
+                processed.push(words.join("|"));
+            }
         }
-        }
-        return processed.join("|");
-
-    } catch (e) {
-        console.error("Error loading lexicon or during segmentation:", e);
-        return null;
+        processedLines.push(processed.join("|") + lineEnding);
     }
+    
+    return processedLines.join("");
 }
 
 // Export functions for use in other modules (Node.js)
